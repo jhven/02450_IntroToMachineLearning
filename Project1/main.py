@@ -19,7 +19,7 @@ from matplotlib.pyplot import (figure, subplot, plot, legend, show,
                                xlabel, ylabel, xticks, yticks, boxplot, setp,title,ylim)
 
 #Open file 
-attributeNames =["sex","Length","Diam","Height","Whole","Shucked","Viscera","Shell","Rings"]
+attributeNames =["Sex","Length","Diam","Height","Whole","Shucked","Viscera","Shell","Rings"]
 df = pd.read_csv('abalone.data',names=attributeNames)
 raw_data = df.get_values() 
 
