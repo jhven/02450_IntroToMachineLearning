@@ -4,12 +4,26 @@
 # In this exercise we will rely on pandas for some of the processing steps:
 import pandas as pd
 import numpy as np 
+import seaborn as sns
+from scipy import stats
+from scipy.io import loadmat
+from scipy.stats import zscore
+import scipy
+from tabulate import tabulate
+import matplotlib.pyplot as plt
+from scipy.linalg import svd
+from matplotlib.pyplot import (figure, title, subplot, plot, hist, show)
+from matplotlib.pyplot import (figure, subplot, boxplot, title, xticks, ylim, 
+                               show)
+from matplotlib.pyplot import (figure, subplot, plot, legend, show, 
+                               xlabel, ylabel, xticks, yticks, boxplot, setp,title,ylim)
+
 #Open file 
 attributeNames =["sex","Length","Diam","Height","Whole","Shucked","Viscera","Shell","Rings"]
 df = pd.read_csv('abalone.data',names=attributeNames)
 raw_data = df.get_values() 
 
-
+attributeNamesC = ["Length","Diam","Height","Whole","Shell","Rings"]
 ###############################################################################################
 #Basic statistics
 #Do not take the first, becasue, it is se
@@ -21,12 +35,16 @@ for item in attributeNames[1:]:
     #basic_stat.concat(a)
     basic_stat.append(a)
    
-print(basic_stat)    
-###CORRELATION 
-    
-import seaborn as sns
-# Create the default pairplot
-#TAGER LIDT LANG TID; saa slaaet fra
-#sns.pairplot(df)
+#print(tabulate(basic_stat, tablefmt="latex", floatfmt="2"))    
+df[attributeNamesC].describe()
+print(tabulate(df[attributeNamesC].describe(), tablefmt="latex", floatfmt="2"))       
+
   
+
+
+
+
+
+
+
     
