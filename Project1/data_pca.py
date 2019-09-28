@@ -4,13 +4,35 @@ Created on Thu Sep 26 20:36:56 2019
 
 @author: Michael
 """
-print("new")
 from main import *
+
+######
+# Cummulative
+######
+
+# Extract class names to python list,
+# then encode with integers (dict)
+sexLabels = df.sex
+sexNames = sorted(df.sex.unique())
+sexDict = dict(zip(sexNames, range(5)))
+
+# Extract vector y, convert to NumPy array
+y = np.asarray([sexDict[value] for value in list(sexLabels)])
+
+# Preallocate memory, then extract excel data to matrix X
+X = np.empty((4177, 5))
+for i, col_id in enumerate(range(3, 11)):
+    X[:, i] = np.asarray(doc.col_values(col_id, 2, 92))
+
+# Compute values of N, M and C.
+N = len(y)
+M = len(attributeNames)
+C = len(classNames)
 
 ######
 #CUMMULATIVE; DID NOT WORK!
 ######
-X = df[attributeNamesC]
+X1= df[attributeNamesC]
 N = 6
 # Subtract mean value from data
 MEAN = [0.523992,0.407881,0.139516,0.828742,0.238831,9.933684]

@@ -31,7 +31,7 @@ basic_stat = [["name","min", "median", "max", "mean", "std"]]
 for item in attributeNames[1:]:
     a = [item,df[item].min() , np.median(df[item]) ,df[item].max(), 
          df[item].mean(), df[item].std(ddof=1)]
- 
+
     #basic_stat.concat(a)
     basic_stat.append(a)
    
