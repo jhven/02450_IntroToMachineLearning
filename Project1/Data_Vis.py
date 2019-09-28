@@ -11,13 +11,11 @@ from main import *
 #BOX PLOT 
 ############################
 
-
 sns.boxplot(data=df[attributeNamesC[:-1]],color="white")
 
 ########################
 # Normal distribution 
 ###########################
-
 for item in attributeNamesC:
     attributeV = df[item]
     
@@ -42,18 +40,7 @@ for item in attributeNamesC:
     ylabel("density")
     show()
 
-    
-    # Make table for latex 
-    mu_ = x.mean()
-    s_ = x.std(ddof=1)
 
-    MuS = [[item, "Value"],
-           ["Empirical mean: ", mu],
-           ["Empirical std.dev.: ", s]]
-
-    #print(tabulate(MuS, tablefmt="latex", floatfmt="2"))    
-
-    
 ##################################################
 #Correlation 
 #####################################################
