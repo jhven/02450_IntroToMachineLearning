@@ -20,7 +20,7 @@ attributeNames =["Sex","Length","Diam","Height","Whole","Shucked","Viscera","She
 #C for correct,
 attributeNamesC = ["Length","Diam","Height","Whole","Shell","Rings"]
 
-df = pd.read_csv('abalone.data',names=attributeNames)
+df = pd.read_csv('../abalone.data',names=attributeNames)
 raw_data = df.get_values() 
 
 ###############################################################################################
