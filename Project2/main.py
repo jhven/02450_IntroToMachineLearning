@@ -74,8 +74,12 @@ styles = ['.b', '.r']
 for c in range(C):
     class_mask = (y_train==c)
     plot(X_train[class_mask,0], X_train[class_mask,1], styles[c])
+title('Distribution of \'Adult\' class');
 
-# K-nearest neighbors
+show()
+
+### K-nearest neighbors
+print("\n\n --- Classification with method: K-nearest neighbours\n")
 K = 12
 
 # Distance variables
@@ -106,7 +110,7 @@ imshow(cm, cmap='binary', interpolation='None');
 colorbar()
 xticks(range(C)); yticks(range(C));
 xlabel('Predicted class'); ylabel('Actual class');
-title('Confusion matrix (Accuracy: {0}%, Error Rate: {1}%)'.format(accuracy, error_rate));
+title('Confusion matrix (Accuracy: {0:.4f}%, Error Rate: {1:.4f}%)'.format(accuracy, error_rate));
 
 show()
 
@@ -144,7 +148,9 @@ show()
 ### CODE FOR DETERMINATION OF NEIGHBOURS IN KNN ENDS HERE ! ! !
 
 
-### Classification baseline
+### Baseline
+print("\n\n --- Classification with method: Baseline\n")
+
 unique_baseline, counts_baseline = np.unique(y_train, return_counts=True)
 baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
 print("Training data has", baseline_count_dict[0], "observations of 'Adult' = 0.")
