@@ -7,85 +7,177 @@ Created on Wed Oct 30 14:07:50 2019
 
 from main import * 
 
-##########################
-# CLASSIFICATION
-##########################
+from matplotlib.pyplot import figure, plot, subplot, title, xlabel, ylabel, show, clim
+from scipy.io import loadmat
+import sklearn.linear_model as lm
+from sklearn import model_selection
+from toolbox_02450 import feature_selector_lr, bmplot
+import numpy as np
+import scipy.stats as st
+
+
+#From exercise 6_2_1 
+# See algorithm 6, page 173 for insiparation 
+#Import data
+from main import *
+
+#Transform the data into prober format 
 
 # Add binary attribute of whether abalone is adult (i.e. female or male) or infant
 df_noOutliers['Adult'] = df_noOutliers.Sex != 'I'
 df_noOutliers.Adult = df_noOutliers.Adult.astype(int)
 
 # Extract vector y, convert to NumPy array
-y = df_noOutliers.Adult.squeeze()
+y = df_noOutliers.Adult.squeeze().to_numpy()
 
 # Creating matrix X, only for the attributes of interest
-X = df_noOutliers[attributeNamesC]
+X = df_noOutliers[attributeNamesC].to_numpy()
 
 # Computing M, N and C
+N, M = X.shape
 C = len(df_noOutliers.Adult.unique())
 
 # Define training set and test set from the dataframe
 max_training_index = 3000
 
-X_train = X.iloc[:max_training_index].to_numpy()
-X_test = X.iloc[max_training_index:].to_numpy()
-y_train = y.iloc[:max_training_index].to_numpy()
-y_test = y.iloc[max_training_index:].to_numpy()
 
-# Plot the training data points (color-coded) and test data points.
-figure(1)
-styles = ['.b', '.r']
-for c in range(C):
-    class_mask = (y_train==c)
-    plot(X_train[class_mask,0], X_train[class_mask,1], styles[c])
+## Crossvalidation
+# Create crossvalidation partition for evaluation
+K1 = 10 #Outer cross validation 
+K2 = 10 #Inner cross validation 
 
-# K-nearest neighbors
-K = 5
+K = 10
+CV1 = model_selection.KFold(n_splits=K1,shuffle=True)
+CV2 = model_selection.KFold(n_splits=K2,shuffle=True)
 
 
-
-
-
-K=3
-
-# Distance metric (corresponds to 2nd norm, euclidean distance).
-# You can set dist=1 to obtain manhattan distance (cityblock distance).
+######################################################
+### K-nearest neighbors
+print("\n\n --- Classification with method: K-nearest neighbours\n")
 dist=2
 metric = 'minkowski'
-metric_params = {} # no parameters needed for minkowski
-
-# You can set the metric argument to 'cosine' to determine the cosine distance
-#metric = 'cosine' 
-#metric_params = {} # no parameters needed for cosine
-
-# To use a mahalonobis distance, we need to input the covariance matrix, too:
-#metric='mahalanobis'
-#metric_params={'V': cov(X_train, rowvar=False)}
+metric_params = {}
 
 # Fit classifier and classify the test points
 knclassifier = KNeighborsClassifier(n_neighbors=K, p=dist, 
                                     metric=metric,
                                     metric_params=metric_params)
-knclassifier.fit(X_train, y_train)
-y_est = knclassifier.predict(X_test)
+########################################################
+
+#Error list 
 
 
-# Plot the classfication results
-styles = ['ob', 'or', 'og', 'oy']
-for c in range(C):
-    class_mask = (y_est==c)
-    plot(X_test[class_mask,0], X_test[class_mask,1], styles[c], markersize=10)
-    plot(X_test[class_mask,0], X_test[class_mask,1], 'kx', markersize=8)
-title('Synthetic data classification - KNN');
 
-# Compute and plot confusion matrix
-cm = confusion_matrix(y_test, y_est);
-accuracy = 100*cm.diagonal().sum()/cm.sum(); error_rate = 100-accuracy;
-figure(2);
-imshow(cm, cmap='binary', interpolation='None');
-colorbar()
-xticks(range(C)); yticks(range(C));
-xlabel('Predicted class'); ylabel('Actual class');
-title('Confusion matrix (Accuracy: {0}%, Error Rate: {1}%)'.format(accuracy, error_rate));
+Error_Cluster = list()
+Error_Baseline = list()
+Error_Cluster_K = list()
 
-show()
+k1 = 0 
+#Outer loop 
+for train_index, test_index in CV1.split(X):
+    
+    # extract training and test set for current CV fold
+    X_train = X[train_index,:]
+    y_train = y[train_index]
+    X_test = X[test_index,:]
+    y_test = y[test_index]
+    
+    ###########################
+    #    Initialization       #
+    ###########################    
+    Error_Cluster_Inner = list()
+    Error_Baseline_Inner = list()
+    Error_Basline_Picked = list()
+    
+        
+    # Inner Loop 
+    KK = 1 
+    for train_index2, test_index2 in CV2.split(X_train):
+        
+        #Extract new training set, of the current one. 
+        X_train2 = X[train_index2,:]
+        y_train2 = y[train_index2]
+        X_test2 = X[test_index2,:]
+        y_test2 = y[test_index2] 
+        
+        ###########################
+        #     K-nearest neighbors   #
+        ###########################
+        
+        #Change K  
+        knclassifier = KNeighborsClassifier(n_neighbors=KK, p=dist, 
+                                    metric=metric,
+                                    metric_params=metric_params)
+        KK +=1
+        
+        knclassifier.fit(X_train2, y_train2)
+        y_est = knclassifier.predict(X_test2)
+
+        Error_Cluster_Inner.append(np.sum(y_est!=y_test2)/np.sum(y_test2))
+           
+        
+        ###########################
+        #   Logistisk regression #
+        ###########################
+
+
+
+        ###########################
+        #     BASELINE            #
+        ###########################
+        
+        # IS THIS TECHINICAL THE BEST WAY? 
+        unique_baseline, counts_baseline = np.unique(y_train2, return_counts=True)
+        baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
+        Error_Baseline_Inner.append(1-sum(y_test2 == 1)/len(y_test2))
+        
+        #Error_Basline_Picked.append()
+        
+    #################################################################
+    # Test model on full set 
+    ######################################################################
+
+    ###########################
+    #      K-nearest neighbors   #
+    ###########################        
+    #Pick best model 
+    best_K = np.argmin(Error_Cluster_Inner)
+    Error_Cluster_K.append(best_K)
+    # +1 Due to python counts from zero with position 
+    knclassifier = KNeighborsClassifier(n_neighbors=(best_K), p=dist, 
+                                    metric=metric,
+                                    metric_params=metric_params)
+    
+    #New test
+    knclassifier.fit(X_train, y_train)
+    y_est = knclassifier.predict(X_test)
+
+    Error_Cluster.append(np.sum(y_est!=y_test)/np.sum(y_test))   
+    
+    
+    ###########################
+    #   Logistisk regression #
+    ###########################
+
+
+
+    ###########################
+    #     BASELINE            #
+    ###########################    
+    
+    #THIS IS TECHNICAL NOT CORRECT!
+    unique_baseline, counts_baseline = np.unique(y_train, return_counts=True)
+    baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
+    Error_Baseline.append((1-sum(y_test == 1)/len(y_test)))
+    
+
+    print('Cross validation fold {0}/{1}'.format(k1+1,K))
+    k1 +=1
+
+
+
+#Output to Latex
+table =[ Error_Cluster_K, Error_Cluster ,Error_Baseline ]
+table = np.array(table).T.tolist()
+#print(tabulate(table))
+print(tabulate(table, headers=["k_cluster", "Cluster", "Baseline"],tablefmt="latex"))    
