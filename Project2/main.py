@@ -78,6 +78,8 @@ title('Distribution of \'Adult\' class');
 
 show()
 
+
+##########################
 ### K-nearest neighbors
 print("\n\n --- Classification with method: K-nearest neighbours\n")
 K = 12
@@ -148,6 +150,7 @@ show()
 ### CODE FOR DETERMINATION OF NEIGHBOURS IN KNN ENDS HERE ! ! !
 
 
+##########################
 ### Baseline
 print("\n\n --- Classification with method: Baseline\n")
 
