@@ -4,6 +4,7 @@ Created on Tue Nov  5 10:18:32 2019
 
 @author: Michael
 """
+from main import * 
 
 # Extract vector y, convert to NumPy array
 y = df_noOutliers.Adult.squeeze().to_numpy()

@@ -14,41 +14,30 @@ from scipy import stats
 #y = X[:,[10]]             # alcohol contents (target)
 #X = X[:,1:10]           # the rest of features
 #N, M = X.shape
-#C = 2
+C = 2
+
 
 from main import *
-
-print("\n \n \n \n")
-print("NOW")
-
 
 #Transform the data into prober format 
 
 X = df_noOutliers[["Length","Diam","Height","Whole","Shell"]].get_values()
 y = df_noOutliers['Rings'].get_values()
-
+y.shape = [len(y),1]
 attributeNames = ["Length","Diam","Height","Whole","Shell"]
 N, M = X.shape
+
+
 
 # Normalize data
 X = stats.zscore(X);
                 
 ## Normalize and compute PCA (change to True to experiment with PCA preprocessing)
-do_pca_preprocessing = False
-if do_pca_preprocessing:
-    Y = stats.zscore(X,0);
-    U,S,V = np.linalg.svd(Y,full_matrices=False)
-    V = V.T
-    #Components to be included as features
-    k_pca = 3
-    X = X @ V[:,0:k_pca]
-    N, M = X.shape
-
 
 # Parameters for neural network classifier
 n_hidden_units = 2      # number of hidden units
-n_replicates = 2        # number of networks trained in each k-fold
-max_iter = 1000        # 
+n_replicates = 1        # number of networks trained in each k-fold
+max_iter = 10000        # 
 
 # K-fold crossvalidation
 K = 3                   # only three folds to speed up this example
@@ -126,18 +115,18 @@ print('\nEstimated generalization error, RMSE: {0}'.format(round(np.sqrt(np.mean
 # the true/known value - these values should all be along a straight line "y=x", 
 # and if the points are above the line, the model overestimates, whereas if the
 # points are below the y=x line, then the model underestimates the value
-#plt.figure(figsize=(10,10));
-#y_est = y_test_est.data.numpy(); y_true = y_test.data.numpy();
-#axis_range = [np.min([y_est, y_true])-1,np.max([y_est, y_true])+1]
-#plt.plot(axis_range,axis_range,'k--')
-#plt.plot(y_true, y_est,'ob',alpha=.25)
-#plt.legend(['Perfect estimation','Model estimations'])
-#plt.title('Alcohol content: estimated versus true value (for last CV-fold)')
-#plt.ylim(axis_range); plt.xlim(axis_range)
-#plt.xlabel('True value')
-#plt.ylabel('Estimated value')
-#plt.grid()
+plt.figure(figsize=(10,10));
+y_est = y_test_est.data.numpy(); y_true = y_test.data.numpy();
+axis_range = [np.min([y_est, y_true])-1,np.max([y_est, y_true])+1]
+plt.plot(axis_range,axis_range,'k--')
+plt.plot(y_true, y_est,'ob',alpha=.25)
+plt.legend(['Perfect estimation','Model estimations'])
+plt.title('Alcohol content: estimated versus true value (for last CV-fold)')
+plt.ylim(axis_range); plt.xlim(axis_range)
+plt.xlabel('True value')
+plt.ylabel('Estimated value')
+plt.grid()
 
-#plt.show()
+plt.show()
 
 print('Ran Exercise 8.2.5')
