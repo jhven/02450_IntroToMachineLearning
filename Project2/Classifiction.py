@@ -91,7 +91,7 @@ for train_index, test_index in CV1.split(X):
     
         
     # Inner Loop 
-    KK = 1 
+    KK = 5
     for train_index2, test_index2 in CV2.split(X_train):
         
         #Extract new training set, of the current one. 
@@ -142,7 +142,7 @@ for train_index, test_index in CV1.split(X):
     ###########################        
     #Pick best model 
     best_K = np.argmin(Error_Cluster_Inner)
-    Error_Cluster_K.append(best_K)
+    Error_Cluster_K.append(int(best_K)+5)
     # +1 Due to python counts from zero with position 
     knclassifier = KNeighborsClassifier(n_neighbors=(best_K), p=dist, 
                                     metric=metric,
