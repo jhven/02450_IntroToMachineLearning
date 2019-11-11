@@ -63,12 +63,11 @@ knclassifier = KNeighborsClassifier(n_neighbors=K, p=dist,
                                     metric=metric,
                                     metric_params=metric_params)
 ########################################################
+lambda_interval = np.logspace(-8, 2, K)
 
 #Error list 
-
-
-
 Error_Cluster = list()
+Error_Logistic = list()
 Error_Baseline = list()
 Error_Cluster_K = list()
 
@@ -86,6 +85,7 @@ for train_index, test_index in CV1.split(X):
     #    Initialization       #
     ###########################    
     Error_Cluster_Inner = list()
+    Error_Logistic_Inner = list()
     Error_Baseline_Inner = list()
     Error_Basline_Picked = list()
     
@@ -100,9 +100,9 @@ for train_index, test_index in CV1.split(X):
         X_test2 = X[test_index2,:]
         y_test2 = y[test_index2] 
         
-        ###########################
+        #############################
         #     K-nearest neighbors   #
-        ###########################
+        #############################
         
         #Change K  
         knclassifier = KNeighborsClassifier(n_neighbors=KK, p=dist, 
@@ -119,7 +119,18 @@ for train_index, test_index in CV1.split(X):
         ###########################
         #   Logistisk regression #
         ###########################
+        logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/lambda_interval[k1])
+    
+        logisticClassifier.fit(X_train2, y_train2)
 
+        y_train_est = logisticClassifier.predict(X_train2).T
+        y_test_est = logisticClassifier.predict(X_test2).T
+    
+        #train_error_rate[k] = np.sum(y_train_est != y_train) / len(y_train2)
+        Error_Logistic_Inner.append(np.sum(y_test_est != y_test2) / len(y_test2))
+
+        #w_est = logisticClassifier.coef_[0] 
+        #coefficient_norm[k] = np.sqrt(np.sum(w_est**2))
 
 
         ###########################
@@ -158,6 +169,16 @@ for train_index, test_index in CV1.split(X):
     ###########################
     #   Logistisk regression #
     ###########################
+    #Pick best model
+    best_lambda = np.argmin(Error_Logistic_Inner)
+    
+    logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/best_lambda)
+
+    #New test
+    logisticClassifier.fit(X_train, y_train)
+    y_test_est = logisticClassifier.predict(X_test).T
+
+    Error_Logistic.append(np.sum(y_test_est != y_test) / len(y_test))
 
 
 
@@ -177,7 +198,7 @@ for train_index, test_index in CV1.split(X):
 
 
 #Output to Latex
-table =[ Error_Cluster_K, Error_Cluster ,Error_Baseline ]
+table =[ Error_Cluster_K, Error_Cluster, Error_Logistic, Error_Baseline ]
 table = np.array(table).T.tolist()
 #print(tabulate(table))
-print(tabulate(table, headers=["k_cluster", "Cluster", "Baseline"],tablefmt="latex"))    
+print(tabulate(table, headers=["k_cluster", "Cluster", "Logistic", "Baseline"],tablefmt="latex"))    
