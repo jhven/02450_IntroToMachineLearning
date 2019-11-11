@@ -88,7 +88,7 @@ for train_index, test_index in CV1.split(X):
             m = lm.Ridge(fit_intercept=True,alpha=item).fit(X_train2, y_train2)
             
             #Take the best of the inner ()
-            Error_m_Inner.append( np.square(y_test2-m.predict(X_test2)).sum()/y_test2.shape[0])
+            Error_m_Inner.append( ((y_test2-m.predict(X_test2))**2).sum()/y_test2.shape[0])
         
         Error_Linear_Inner.append(min(Error_m_Inner))
         Error_Linear_Inner_reg.append(Regulization[np.argmin(Error_m_Inner)])
@@ -107,7 +107,7 @@ for train_index, test_index in CV1.split(X):
         
         Baseline_y_train = y_test2.mean()
 
-        Error_Baseline_Inner.append(abs(np.square(abs(y_test2-Baseline_y_train)).sum()/y_test2.shape[0]))
+        Error_Baseline_Inner.append(((y_test2-Baseline_y_train)**2).sum()/y_test2.shape[0])
         Error_Baseline_mean.append(Baseline_y_train)
     ######################################################################
     # Test model on full set 
@@ -120,7 +120,7 @@ for train_index, test_index in CV1.split(X):
     best_reg = np.argmin(Error_Linear_Inner_reg)       
     m = lm.Ridge(fit_intercept=True,alpha=best_reg).fit(X_train, y_train)
     
-    Error_Linear.append( np.square(y_test-m.predict(X_test)).sum()/y_test.shape[0])
+    Error_Linear.append( ((y_test-m.predict(X_test))**2).sum()/y_test.shape[0])
     Linear_Lambda.append(Regulization[best_reg])
     
     
@@ -137,7 +137,7 @@ for train_index, test_index in CV1.split(X):
     Basline_mean = Error_Baseline_mean[np.argmin(Error_Baseline_Inner)]
 
     # I AM NOT SURE; IF I JUST SHOULD TAKE THE DIFFERENCE; OR SQUARED ERROR HERE? 
-    Error_Baseline.append(abs(np.square(abs(y_test-Basline_mean)).sum()/y_test.shape[0]))
+    Error_Baseline.append(((y_test-Basline_mean)**2).sum()/y_test.shape[0])
 
 
     print('Cross validation fold {0}/{1}'.format(k1+1,K))
