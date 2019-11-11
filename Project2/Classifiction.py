@@ -14,6 +14,7 @@ from sklearn import model_selection
 from toolbox_02450 import feature_selector_lr, bmplot
 import numpy as np
 import scipy.stats as st
+import operator
 
 
 #From exercise 6_2_1 
@@ -68,7 +69,9 @@ lambda_interval = np.logspace(-8, 2, K)
 #Error list 
 Error_Cluster = list()
 Error_Logistic = list()
+Error_Logistic_Lambda = list()
 Error_Baseline = list()
+Error_Baseline_Picked = list()
 Error_Cluster_K = list()
 
 k1 = 0 
@@ -86,8 +89,9 @@ for train_index, test_index in CV1.split(X):
     ###########################    
     Error_Cluster_Inner = list()
     Error_Logistic_Inner = list()
+    Error_Logistic_Lambda_Inner = list()
     Error_Baseline_Inner = list()
-    Error_Basline_Picked = list()
+    Error_Baseline_Picked_Inner = list()
     
         
     # Inner Loop 
@@ -117,20 +121,25 @@ for train_index, test_index in CV1.split(X):
            
         
         ###########################
-        #   Logistisk regression #
+        #   Logistisk regression  #
         ###########################
-        logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/lambda_interval[k1])
-    
-        logisticClassifier.fit(X_train2, y_train2)
+        best_lambda_inner = 1000.0
+        current_best_logistic_error = 999999.99 #Initial value to guarantee update on first iteration
+        for l in range(len(lambda_interval)):
+            logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/lambda_interval[l])
+        
+            #Test the model
+            logisticClassifier.fit(X_train2, y_train2)
+            y_test_est = logisticClassifier.predict(X_test2)
+            current_error = np.sum(y_test_est != y_test2) / len(y_test2)
+            
+            #Check if current model is better than the previous best inner model
+            if current_error <= current_best_logistic_error:
+                best_lambda_inner = lambda_interval[l]
+                current_best_logistic_error = current_error
 
-        y_train_est = logisticClassifier.predict(X_train2).T
-        y_test_est = logisticClassifier.predict(X_test2).T
-    
-        #train_error_rate[k] = np.sum(y_train_est != y_train) / len(y_train2)
-        Error_Logistic_Inner.append(np.sum(y_test_est != y_test2) / len(y_test2))
-
-        #w_est = logisticClassifier.coef_[0] 
-        #coefficient_norm[k] = np.sqrt(np.sum(w_est**2))
+        Error_Logistic_Inner.append(current_best_logistic_error)
+        Error_Logistic_Lambda_Inner.append(best_lambda_inner)
 
 
         ###########################
@@ -140,9 +149,10 @@ for train_index, test_index in CV1.split(X):
         # IS THIS TECHINICAL THE BEST WAY? 
         unique_baseline, counts_baseline = np.unique(y_train2, return_counts=True)
         baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
-        Error_Baseline_Inner.append(1-sum(y_test2 == 1)/len(y_test2))
+        majority_value = max(baseline_count_dict.items(), key=operator.itemgetter(1))[0]
+        Error_Baseline_Inner.append(1-sum(y_test2 == int(majority_value))/len(y_test2))
         
-        #Error_Basline_Picked.append()
+        Error_Baseline_Picked_Inner.append(int(majority_value))
         
     #################################################################
     # Test model on full set 
@@ -172,13 +182,14 @@ for train_index, test_index in CV1.split(X):
     #Pick best model
     best_lambda = np.argmin(Error_Logistic_Inner)
     
-    logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/best_lambda)
+    logisticClassifier = lm.LogisticRegression(penalty='l2', C=1/Error_Logistic_Inner[best_lambda])
 
     #New test
     logisticClassifier.fit(X_train, y_train)
     y_test_est = logisticClassifier.predict(X_test).T
 
     Error_Logistic.append(np.sum(y_test_est != y_test) / len(y_test))
+    Error_Logistic_Lambda.append(Error_Logistic_Inner[best_lambda])
 
 
 
@@ -186,10 +197,11 @@ for train_index, test_index in CV1.split(X):
     #     BASELINE            #
     ###########################    
     
-    #THIS IS TECHNICAL NOT CORRECT!
     unique_baseline, counts_baseline = np.unique(y_train, return_counts=True)
     baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
-    Error_Baseline.append((1-sum(y_test == 1)/len(y_test)))
+    majority_value = max(baseline_count_dict.items(), key=operator.itemgetter(1))[0]
+    Error_Baseline.append((1-sum(y_test == int(majority_value))/len(y_test)))
+    Error_Baseline_Picked.append(int(majority_value))
     
 
     print('Cross validation fold {0}/{1}'.format(k1+1,K))
@@ -198,7 +210,7 @@ for train_index, test_index in CV1.split(X):
 
 
 #Output to Latex
-table =[ Error_Cluster_K, Error_Cluster, Error_Logistic, Error_Baseline ]
+table =[ Error_Cluster_K, Error_Cluster, Error_Logistic_Lambda, Error_Logistic, Error_Baseline_Picked, Error_Baseline ]
 table = np.array(table).T.tolist()
 #print(tabulate(table))
-print(tabulate(table, headers=["k_cluster", "Cluster", "Logistic", "Baseline"],tablefmt="latex"))    
+print(tabulate(table, headers=["k_cluster", "Cluster", "Lambda", "Logistic", "Majority", "Baseline"],tablefmt="latex"))    
