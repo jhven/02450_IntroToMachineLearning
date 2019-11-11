@@ -5,8 +5,6 @@ Created on Wed Oct 30 14:07:50 2019
 @author: Michael
 """
 
-from main import * 
-
 from matplotlib.pyplot import figure, plot, subplot, title, xlabel, ylabel, show, clim
 from scipy.io import loadmat
 import sklearn.linear_model as lm
@@ -21,6 +19,10 @@ import operator
 # See algorithm 6, page 173 for insiparation 
 #Import data
 from main import *
+
+# Ignore FutureWarnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 #Transform the data into prober format 
 
@@ -146,21 +148,20 @@ for train_index, test_index in CV1.split(X):
         #     BASELINE            #
         ###########################
         
-        # IS THIS TECHINICAL THE BEST WAY? 
         unique_baseline, counts_baseline = np.unique(y_train2, return_counts=True)
         baseline_count_dict = dict(zip(unique_baseline, counts_baseline))
         majority_value = max(baseline_count_dict.items(), key=operator.itemgetter(1))[0]
         Error_Baseline_Inner.append(1-sum(y_test2 == int(majority_value))/len(y_test2))
-        
         Error_Baseline_Picked_Inner.append(int(majority_value))
+        
         
     #################################################################
     # Test model on full set 
     ######################################################################
 
-    ###########################
+    ##############################
     #      K-nearest neighbors   #
-    ###########################        
+    ##############################      
     #Pick best model 
     best_K = np.argmin(Error_Cluster_Inner)
     Error_Cluster_K.append(int(best_K)+5)
