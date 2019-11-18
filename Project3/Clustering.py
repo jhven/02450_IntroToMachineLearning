@@ -100,11 +100,15 @@ Z = linkage(X, method=Method, metric=Metric)
 Maxclust = 3
 cls = fcluster(Z, criterion='maxclust', t=Maxclust)
 figure(1)
+xlabel('SOME GOOD AXIS')
+ylabel('SOME GOOD AXIS')
 clusterplot(X, cls.reshape(cls.shape[0],1), y=y)
 
 # Display dendrogram
 max_display_levels=6
 figure(2,figsize=(10,4))
+xlabel('SOME GOOD AXIS')
+ylabel('SOME GOOD AXIS')
 dendrogram(Z, truncate_mode='level', p=max_display_levels)
 
 show()
