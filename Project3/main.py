@@ -28,6 +28,16 @@ attributeNamesC = ["Length","Diam","Height","Whole","Shell","Rings"]
 df = pd.read_csv('../abalone.data',names=attributeNames)
 raw_data = df.get_values()
 
+# Add binary attribute of whether abalone is adult (i.e. female or male) or infant
+df['Adult'] = df.Sex != 'I'
+df.Adult = df.Adult.astype(int)
+
+# Get class names
+classLabels = df.Rings
+classNames = np.unique(classLabels)
+classDict = dict(zip(classNames,range(len(classNames))))
+y_classNames = np.array([classDict[cl] for cl in classLabels])
+
 # Excluding outliers from the data set
 df_noOutliers = df[df.Height < 0.4]
 df_noOutliers = df_noOutliers[df_noOutliers.Height > 0]
@@ -45,8 +55,4 @@ df_noOutliers = df_noOutliers[df_noOutliers.Height > 0]
 ##########################
 # CLASSIFICATION
 ##########################
-
-# Add binary attribute of whether abalone is adult (i.e. female or male) or infant
-df_noOutliers['Adult'] = df_noOutliers.Sex != 'I'
-df_noOutliers.Adult = df_noOutliers.Adult.astype(int)
 
