@@ -23,8 +23,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 ################################################
 # EXCLUSION OF OULIERS
 ################################################
-#df = df[df.Height < 0.4]
-#df = df[df.Height > 0]
+df = df[df.Height < 0.4]
+df = df[df.Height > 0]
+df = df[df.Rings < 26]
 
 ################################################
 # FEATURE EXTRACTION 
@@ -54,8 +55,8 @@ attributeNames = list(Newdf.columns)
 
 ##### Intervals of number of rings
 # Grouping all observations in intervals of 5 in the number of rings
-Newdf['RingsGroup'] = '1-5'
-Newdf.loc[Newdf['Rings'] >  5,'RingsGroup'] = '6-10'
+Newdf['RingsGroup'] = '01-05'
+Newdf.loc[Newdf['Rings'] >  5,'RingsGroup'] = '06-10'
 Newdf.loc[Newdf['Rings'] > 10,'RingsGroup'] = '11-15'
 Newdf.loc[Newdf['Rings'] > 15,'RingsGroup'] = '16-20'
 Newdf.loc[Newdf['Rings'] > 20,'RingsGroup'] = '21-25'
@@ -116,54 +117,54 @@ print("Accuracy of the heirarchical clustering:", accuracy_hierarchical)
 ################################################
 # Gaussian Mixture Model
 ################################################
-
-# Range of K's to try
-KRange = range(max(1, C - 5),C + 10)
-T = len(KRange)
-
-covar_type = 'full'       # you can try out 'diag' as well
-reps = 3                  # number of fits with different initalizations, best result will be kept
-init_procedure = 'kmeans' # 'kmeans' or 'random'
-
-# Allocate variables
-BIC = np.zeros((T,))
-AIC = np.zeros((T,))
-CVE = np.zeros((T,))
-
-# K-fold crossvalidation
-CV = model_selection.KFold(n_splits=10,shuffle=True)
-
-for t,K in enumerate(KRange):
-        print('Fitting model for K={0}'.format(K))
-
-        # Fit Gaussian mixture model
-        gmm = GaussianMixture(n_components=K, covariance_type=covar_type, 
-                              n_init=reps, init_params=init_procedure,
-                              tol=1e-6, reg_covar=1e-6).fit(X)
-        
-        # Get BIC and AIC
-        BIC[t,] = gmm.bic(X)
-        AIC[t,] = gmm.aic(X)
-
-        # For each crossvalidation fold
-        for train_index, test_index in CV.split(X):
-
-            # extract training and test set for current CV fold
-            X_train = X.to_numpy()[train_index,:]
-            X_test = X.to_numpy()[test_index,:]
-
-            # Fit Gaussian mixture model to X_train
-            gmm = GaussianMixture(n_components=K, covariance_type=covar_type, n_init=reps).fit(X_train)
-
-            # compute negative log likelihood of X_test
-            CVE[t] += -gmm.score_samples(X_test).sum()
-            
-
-# Plot results
-figure(3);
-plot(KRange, BIC,'-*b')
-plot(KRange, AIC,'-xr')
-plot(KRange, 2*CVE,'-ok')
-legend(['BIC', 'AIC', 'Crossvalidation'])
-xlabel('K')
-show()
+#
+## Range of K's to try
+#KRange = range(max(1, C - 5),C + 10)
+#T = len(KRange)
+#
+#covar_type = 'full'       # you can try out 'diag' as well
+#reps = 3                  # number of fits with different initalizations, best result will be kept
+#init_procedure = 'kmeans' # 'kmeans' or 'random'
+#
+## Allocate variables
+#BIC = np.zeros((T,))
+#AIC = np.zeros((T,))
+#CVE = np.zeros((T,))
+#
+## K-fold crossvalidation
+#CV = model_selection.KFold(n_splits=10,shuffle=True)
+#
+#for t,K in enumerate(KRange):
+#        print('Fitting model for K={0}'.format(K))
+#
+#        # Fit Gaussian mixture model
+#        gmm = GaussianMixture(n_components=K, covariance_type=covar_type, 
+#                              n_init=reps, init_params=init_procedure,
+#                              tol=1e-6, reg_covar=1e-6).fit(X)
+#        
+#        # Get BIC and AIC
+#        BIC[t,] = gmm.bic(X)
+#        AIC[t,] = gmm.aic(X)
+#
+#        # For each crossvalidation fold
+#        for train_index, test_index in CV.split(X):
+#
+#            # extract training and test set for current CV fold
+#            X_train = X.to_numpy()[train_index,:]
+#            X_test = X.to_numpy()[test_index,:]
+#
+#            # Fit Gaussian mixture model to X_train
+#            gmm = GaussianMixture(n_components=K, covariance_type=covar_type, n_init=reps).fit(X_train)
+#
+#            # compute negative log likelihood of X_test
+#            CVE[t] += -gmm.score_samples(X_test).sum()
+#            
+#
+## Plot results
+#figure(3);
+#plot(KRange, BIC,'-*b')
+#plot(KRange, AIC,'-xr')
+#plot(KRange, 2*CVE,'-ok')
+#legend(['BIC', 'AIC', 'Crossvalidation'])
+#xlabel('K')
+#show()
