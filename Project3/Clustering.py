@@ -83,7 +83,6 @@ N, M = X.shape
 C = len(np.unique(Newscaleddf.RingsGroup))
 
 
-
 # Perform hierarchical/agglomerative clustering on data matrix
 #Method = 'single'
 Method = 'complete'
@@ -96,15 +95,13 @@ Z = linkage(X, method=Method, metric=Metric)
 Maxclust = C
 cls = fcluster(Z, criterion='maxclust', t=Maxclust)
 figure(1,figsize=(15,15))
-xlabel('SOME GOOD AXIS NAME')
-ylabel('SOME GOOD AXIS NAME')
+xlabel('PCA1')
+ylabel('PCA2')
 clusterplot(X, cls.reshape(cls.shape[0],1), y=y)
 
 # Display dendrogram
 max_display_levels=6
 figure(2,figsize=(10,4))
-xlabel('SOME GOOD AXIS NAME')
-ylabel('SOME GOOD AXIS NAME')
 dendrogram(Z, truncate_mode='level', p=max_display_levels)
 
 show()
@@ -117,22 +114,22 @@ print("Accuracy of the heirarchical clustering:", accuracy_hierarchical)
 ################################################
 # Gaussian Mixture Model
 ################################################
-#
-## Range of K's to try
-#KRange = range(max(1, C - 5),C + 10)
-#T = len(KRange)
-#
-#covar_type = 'full'       # you can try out 'diag' as well
-#reps = 3                  # number of fits with different initalizations, best result will be kept
-#init_procedure = 'kmeans' # 'kmeans' or 'random'
-#
-## Allocate variables
-#BIC = np.zeros((T,))
-#AIC = np.zeros((T,))
-#CVE = np.zeros((T,))
-#
-## K-fold crossvalidation
-#CV = model_selection.KFold(n_splits=10,shuffle=True)
+
+# Range of K's to try
+KRange = range(max(1, C - 5),C + 20)
+T = len(KRange)
+
+covar_type = 'full'       # you can try out 'diag' as well
+reps = 3                  # number of fits with different initalizations, best result will be kept
+init_procedure = 'kmeans' # 'kmeans' or 'random'
+
+# Allocate variables
+BIC = np.zeros((T,))
+AIC = np.zeros((T,))
+CVE = np.zeros((T,))
+
+# K-fold crossvalidation
+CV = model_selection.KFold(n_splits=10,shuffle=True)
 #
 #for t,K in enumerate(KRange):
 #        print('Fitting model for K={0}'.format(K))
@@ -167,4 +164,40 @@ print("Accuracy of the heirarchical clustering:", accuracy_hierarchical)
 #plot(KRange, 2*CVE,'-ok')
 #legend(['BIC', 'AIC', 'Crossvalidation'])
 #xlabel('K')
+#ylabel('Error')
 #show()
+
+### Computing the GMM
+# With the above, the K to test on is determined
+K = 7#np.where(BIC == min(BIC))[0][0]
+cov_type = 'full' # e.g. 'full' or 'diag'
+
+# Fit Gaussian mixture model
+gmm = GaussianMixture(n_components=K, covariance_type=cov_type, n_init=reps, 
+                      tol=1e-6, reg_covar=1e-6, init_params=init_procedure).fit(X)
+cls = gmm.predict(X)    
+# extract cluster labels
+cds = gmm.means_        
+# extract cluster centroids (means of gaussians)
+covs = gmm.covariances_
+# extract cluster shapes (covariances of gaussians)
+if cov_type.lower() == 'diag':
+    new_covs = np.zeros([K,M,M])    
+    
+    count = 0    
+    for elem in covs:
+        temp_m = np.zeros([M,M])
+        new_covs[count] = np.diag(elem)
+        count += 1
+
+    covs = new_covs
+
+# Plot results:
+#figure(figsize=(14,9))
+#clusterplot(X, clusterid=cls, centroids=cds, y=y, covars=covs)
+#plt.legend(legend_items, numpoints=1, markerscale=.75, prop={'size': 9})
+#show()
+figure(figsize=(14,9))
+idx = [0,1] # feature index, choose two features to use as x and y axis in the plot
+clusterplot(X.to_numpy()[:,idx], clusterid=cls, centroids=cds[:,idx], y=y, covars=covs[:,idx,:][:,:,idx])
+show()
