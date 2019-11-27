@@ -10,15 +10,12 @@ from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 # See algorithm 6, page 173 for insiparation 
 #Import data
 from main import *
+from main import scatterplot
 
 # Ignore FutureWarnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-######################################################################
-# NOTICE -  THE FOLLOWING CODE IS CURRENTLY MADE FOR THE WHOLE DATA SET
-#           I.E. THE INITIALLY CATEGORIZED OUTLIERS ARE IN THE DATA SET!
-######################################################################
 
 ################################################
 # EXCLUSION OF OULIERS
@@ -82,6 +79,16 @@ X = Newscaleddf[attributeNamesC[:5]]
 N, M = X.shape
 C = len(np.unique(Newscaleddf.RingsGroup))
 
+# Plot the data to illustrate data point distribution
+figure(1,figsize=(15,15))
+xlabel('PCA1')
+ylabel('PCA2')
+scatterplot(X, y=y)
+
+
+################################################
+# HIERARCHICAL CLISTERING
+################################################
 
 # Perform hierarchical/agglomerative clustering on data matrix
 #Method = 'single'
@@ -112,7 +119,7 @@ print("Accuracy of the heirarchical clustering:", accuracy_hierarchical)
 
 
 ################################################
-# Gaussian Mixture Model
+# GAUSSIAN MIXTURE MODEL
 ################################################
 
 # Range of K's to try
@@ -130,42 +137,42 @@ CVE = np.zeros((T,))
 
 # K-fold crossvalidation
 CV = model_selection.KFold(n_splits=10,shuffle=True)
-#
-#for t,K in enumerate(KRange):
-#        print('Fitting model for K={0}'.format(K))
-#
-#        # Fit Gaussian mixture model
-#        gmm = GaussianMixture(n_components=K, covariance_type=covar_type, 
-#                              n_init=reps, init_params=init_procedure,
-#                              tol=1e-6, reg_covar=1e-6).fit(X)
-#        
-#        # Get BIC and AIC
-#        BIC[t,] = gmm.bic(X)
-#        AIC[t,] = gmm.aic(X)
-#
-#        # For each crossvalidation fold
-#        for train_index, test_index in CV.split(X):
-#
-#            # extract training and test set for current CV fold
-#            X_train = X.to_numpy()[train_index,:]
-#            X_test = X.to_numpy()[test_index,:]
-#
-#            # Fit Gaussian mixture model to X_train
-#            gmm = GaussianMixture(n_components=K, covariance_type=covar_type, n_init=reps).fit(X_train)
-#
-#            # compute negative log likelihood of X_test
-#            CVE[t] += -gmm.score_samples(X_test).sum()
-#            
-#
-## Plot results
-#figure(3);
-#plot(KRange, BIC,'-*b')
-#plot(KRange, AIC,'-xr')
-#plot(KRange, 2*CVE,'-ok')
-#legend(['BIC', 'AIC', 'Crossvalidation'])
-#xlabel('K')
-#ylabel('Error')
-#show()
+
+for t,K in enumerate(KRange):
+        print('Fitting model for K={0}'.format(K))
+
+        # Fit Gaussian mixture model
+        gmm = GaussianMixture(n_components=K, covariance_type=covar_type, 
+                              n_init=reps, init_params=init_procedure,
+                              tol=1e-6, reg_covar=1e-6).fit(X)
+        
+        # Get BIC and AIC
+        BIC[t,] = gmm.bic(X)
+        AIC[t,] = gmm.aic(X)
+
+        # For each crossvalidation fold
+        for train_index, test_index in CV.split(X):
+
+            # extract training and test set for current CV fold
+            X_train = X.to_numpy()[train_index,:]
+            X_test = X.to_numpy()[test_index,:]
+
+            # Fit Gaussian mixture model to X_train
+            gmm = GaussianMixture(n_components=K, covariance_type=covar_type, n_init=reps).fit(X_train)
+
+            # compute negative log likelihood of X_test
+            CVE[t] += -gmm.score_samples(X_test).sum()
+            
+
+# Plot results
+figure(3);
+plot(KRange, BIC,'-*b')
+plot(KRange, AIC,'-xr')
+plot(KRange, 2*CVE,'-ok')
+legend(['BIC', 'AIC', 'Crossvalidation'])
+xlabel('K')
+ylabel('Error')
+show()
 
 ### Computing the GMM
 # With the above, the K to test on is determined
@@ -189,15 +196,38 @@ if cov_type.lower() == 'diag':
         temp_m = np.zeros([M,M])
         new_covs[count] = np.diag(elem)
         count += 1
-
     covs = new_covs
 
 # Plot results:
-#figure(figsize=(14,9))
-#clusterplot(X, clusterid=cls, centroids=cds, y=y, covars=covs)
-#plt.legend(legend_items, numpoints=1, markerscale=.75, prop={'size': 9})
-#show()
+
 figure(figsize=(14,9))
 idx = [0,1] # feature index, choose two features to use as x and y axis in the plot
+xlabel('PCA1')
+ylabel('PCA2')
 clusterplot(X.to_numpy()[:,idx], clusterid=cls, centroids=cds[:,idx], y=y, covars=covs[:,idx,:][:,:,idx])
 show()
+
+
+################################################
+# HIERARCHICAL CLUSTERING WITH GMM ESTIMATED NUMBER OF COMPONENTS
+################################################
+
+# Perform hierarchical/agglomerative clustering on data matrix
+#Method = 'single'
+Method = 'complete'
+#Method = 'centroid'
+Metric = 'euclidean'
+
+Z = linkage(X, method=Method, metric=Metric)
+
+# Compute and display clusters by thresholding the dendrogram
+Maxclust = 7#np.where(BIC == min(BIC))[0][0]
+cls = fcluster(Z, criterion='maxclust', t=Maxclust)
+figure(1,figsize=(15,15))
+xlabel('PCA1')
+ylabel('PCA2')
+clusterplot(X, cls.reshape(cls.shape[0],1), y=y)
+
+# Calculate accuracy
+accuracy_hierarchical = sum([cls[i] == y_classNames[i] for i in range(len(cls))]) / N
+print("Accuracy of the heirarchical clustering with", Maxclust, "components:", accuracy_hierarchical)
