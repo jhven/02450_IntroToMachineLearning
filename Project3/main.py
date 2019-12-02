@@ -76,11 +76,3 @@ def scatterplot(X, centroids='None', y='None', covars='None'):
         if i<C: legend_items[i] = 'Class: {0}'.format(legend_items[i]);
     plt.legend(legend_items, numpoints=1, markerscale=.75, prop={'size': 9})
 
-
-
-
-
-##########################
-# CLASSIFICATION
-##########################
-
